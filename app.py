@@ -4,32 +4,51 @@ from google import genai
 
 st.set_page_config(
     page_title="My AI Chatbot",
-    page_icon="🤖"
+    page_icon="🤖",
+    layout="centered"
 )
 
-st.title("🤖 My AI Chatbot")
-st.caption("Ask me anything!")
-
+# Secure API key
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
+    client = genai.Client(api_key=api_key)
 except Exception:
-    st.error("API key missing. Check secrets.toml.")
+    st.error("API key setup check pannunga: Streamlit Secrets.")
     st.stop()
 
-client = genai.Client(api_key=api_key)
-
+# Session setup
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if st.button("＋ New Chat"):
-    st.session_state.messages = []
-    st.rerun()
+if "chat_count" not in st.session_state:
+    st.session_state.chat_count = 1
 
+# Sidebar
+with st.sidebar:
+    st.title("🤖 My AI Chatbot")
+    st.caption("Your personal AI assistant")
+
+    if st.button("＋ New Chat", use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.chat_count += 1
+        st.rerun()
+
+    st.divider()
+    st.subheader("About")
+    st.write("Ask questions, learn Python, and explore ideas.")
+    st.caption("Chat history is kept for this session only.")
+
+# Main page
+st.title("🤖 My AI Chatbot")
+st.caption("Ask me anything — Python, studies, projects and more!")
+
+# Show existing messages
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-prompt = st.chat_input("Type your message here...")
+# Input
+prompt = st.chat_input("Type your message...")
 
 if prompt:
     st.session_state.messages.append(
@@ -39,6 +58,7 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # Send recent conversation context
     history = []
     for msg in st.session_state.messages[-12:]:
         role = "User" if msg["role"] == "user" else "Assistant"
@@ -53,7 +73,8 @@ if prompt:
                     model="gemini-3.8-flash",
                     contents=(
                         "You are a helpful AI assistant. "
-                        "Answer clearly and honestly.\n\n"
+                        "Answer clearly, honestly, and simply. "
+                        "If the user asks for Thanglish, use Thanglish.\n\n"
                         + conversation
                     )
                 )
@@ -66,18 +87,18 @@ if prompt:
         )
 
     except Exception as e:
-    error_text = str(e)
+        error_text = str(e)
 
-    if "503" in error_text or "UNAVAILABLE" in error_text:
-        st.warning(
-            "AI server busy-a irukku. "
-            "Konjam neram wait pannitu retry pannunga."
-        )
-    elif "429" in error_text or "RESOURCE_EXHAUSTED" in error_text:
-        st.warning(
-            "API usage limit reach aagirukkalaam. "
-            "Konjam neram kazhichu try pannunga."
-        )
-    else:
-        st.error("Sorry, response generate panna mudiyala.")
-        st.caption(f"Error type: {type(e).__name__}")
+        if "503" in error_text or "UNAVAILABLE" in error_text:
+            st.warning(
+                "AI server busy-a irukku. "
+                "Konjam wait pannitu try pannunga."
+            )
+        elif "429" in error_text or "RESOURCE_EXHAUSTED" in error_text:
+            st.warning(
+                "API usage limit reach aagirukkalaam. "
+                "Konjam neram kazhichu try pannunga."
+            )
+        else:
+            st.error("Response generate panna mudiyala.")
+            st.caption(f"Error type: {type(e).__name__}")
