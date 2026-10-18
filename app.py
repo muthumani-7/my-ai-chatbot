@@ -66,5 +66,18 @@ if prompt:
         )
 
     except Exception as e:
-        st.error(f"Error type: {type(e).__name__}")
-        st.code(str(e))
+    error_text = str(e)
+
+    if "503" in error_text or "UNAVAILABLE" in error_text:
+        st.warning(
+            "AI server busy-a irukku. "
+            "Konjam neram wait pannitu retry pannunga."
+        )
+    elif "429" in error_text or "RESOURCE_EXHAUSTED" in error_text:
+        st.warning(
+            "API usage limit reach aagirukkalaam. "
+            "Konjam neram kazhichu try pannunga."
+        )
+    else:
+        st.error("Sorry, response generate panna mudiyala.")
+        st.caption(f"Error type: {type(e).__name__}")
