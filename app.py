@@ -36,7 +36,22 @@ with st.sidebar:
     st.divider()
     st.subheader("About")
     st.write("Ask questions, learn Python, and explore ideas.")
-    st.caption("Chat history is kept for this session only.")
+    st.caption("Chat history is kept for")
+    
+    if st.session_state.messages:
+        chat_text = "\n\n".join(
+            f"{msg['role'].upper()}:\n{msg['content']}"
+            for msg in st.session_state.messages
+        )
+
+        st.download_button(
+            label="⬇️ Download Chat",
+            data=chat_text,
+            file_name="my_ai_chat.txt",
+            mime="text/plain",
+            use_container_width=True
+        )
+
 
 # Main page
 st.title("🤖 My AI Chatbot")
